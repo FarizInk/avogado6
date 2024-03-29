@@ -1,0 +1,20 @@
+{
+  "name": "avogado6",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "web:scrap": "bun web/scrap.js",
+    "web:download": "bun web/download.js",
+    "web": "bun run web:scrap && bun run web:download"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "puppeteer": "^22.6.1"
+  }
+}
