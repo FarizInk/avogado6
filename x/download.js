@@ -26,7 +26,7 @@ import { promisify } from 'util';
             }
 
             let filePath = null;
-            if (content.type !== 'image' && content.img) {
+            if (content.type === 'image' && content.img) {
                 let extension = null
                 const split = content.img.split('?')
                 const params = new URLSearchParams(split[1]);
@@ -54,9 +54,9 @@ import { promisify } from 'util';
                     await finishedDownload(writer);
                     console.log(fileName)
                 }
-            } else if (content.type !== 'gif') {
-                console.log('skip video...')
-            } else if (content.type !== 'gif') {
+            } else if (content.type === 'gif') {
+                console.log('skip gif...')
+            } else if (content.type === 'video') {
                 console.log('skip video...')
             }
 
