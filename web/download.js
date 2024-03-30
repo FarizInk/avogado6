@@ -4,7 +4,6 @@ import { mkdir } from "node:fs/promises";
 import * as stream from 'stream';
 import { promisify } from 'util';
 
-
 (async () => {
     const path = 'web/files'
     await mkdir(path, { recursive: true });

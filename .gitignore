@@ -177,3 +177,5 @@ dist
 
 web/*.json
 web/files/*
+x/*.json
+x/files/*
