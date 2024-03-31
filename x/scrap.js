@@ -66,11 +66,12 @@ import 'dotenv/config'
                     .forEach((elem) => {
                         const url = elem.getAttribute('href')
                         if (!data.find((item) => item.url === url)) {
+                            const isGroup = elem.querySelector('svg') !== null
                             data.push({
-                                is_group: elem.querySelector('svg') !== null,
+                                is_group: isGroup,
                                 url,
                                 img: elem.querySelector('img')?.getAttribute('src'),
-                                type: getType(elem),
+                                type: isGroup ? null : getType(elem),
                                 downloaded: null,
                                 group: []
                             });

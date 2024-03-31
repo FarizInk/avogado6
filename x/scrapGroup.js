@@ -38,50 +38,48 @@ import 'dotenv/config'
         if (content.is_group && content.url && content.group.length === 0) {
             const spltUrl = content.url.split('/')
             const url = `/${spltUrl[1]}/${spltUrl[2]}/${spltUrl[3]}`
+            const id = spltUrl[3]
             await page.goto(`https://x.com${url}`)
             await setTimeout(3000);
-            const payload = await page.evaluate((url) => {
-                // const firstElem = document.evaluate('/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/section/div/div/div[1]/div/div/article/div/div/div[3]/div[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                //     .singleNodeValue
-                // const secElem = document.evaluate('/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[2]/div/div/article/div/div/div[3]/div[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                //     .singleNodeValue
-                // const thirdElem = document.evaluate('/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[3]/div/div/article/div/div/div[3]/div[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                //     .singleNodeValue
-
-                // let elem = firstElem ?? secElem ?? thirdElem;
-
+            const payload = await page.evaluate((url, id) => {
                 let elem = null
                 document.querySelectorAll('article').forEach(e => {
-                    if (e.textContent.includes('avogado6')) {
+                    if (e.textContent.includes('avogado6') && e.nextSibling?.textContent?.includes('Post your reply')) {
                         elem = e
                     }
                 })
 
                 let data = [];
                 elem?.querySelectorAll('img')?.forEach((e, i) => {
-                    data.push({
-                        is_group: false,
-                        url: `${url}/photo/${i + 1}`,
-                        img: e?.getAttribute('src'),
-                        type: 'image',
-                        downloaded: null,
-                        group: []
-                    });
+                    const parentUrl = e.closest('a')?.getAttribute('href')
+                    if (parentUrl?.includes(id)) {
+                        data.push({
+                            is_group: false,
+                            url: `${url}/photo/${i + 1}`,
+                            img: e?.getAttribute('src'),
+                            type: 'image',
+                            downloaded: null,
+                            group: []
+                        });
+                    }
                 })
 
                 elem?.querySelectorAll('video')?.forEach((e, i) => {
-                    data.push({
-                        is_group: false,
-                        url: `${url}/video/${i + 1}`,
-                        img: null,
-                        type: 'video',
-                        downloaded: null,
-                        group: []
-                    });
+                    const parentUrl = e.closest('a')?.getAttribute('href')
+                    if (parentUrl?.includes(id)) {
+                        data.push({
+                            is_group: false,
+                            url: `${url}/video/${i + 1}`,
+                            img: null,
+                            type: 'video',
+                            downloaded: null,
+                            group: []
+                        });
+                    }
                 })
 
                 return data;
-            }, url)
+            }, url, id)
 
             console.log(payload.length, url);
 

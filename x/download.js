@@ -3,14 +3,36 @@ import * as fs from 'fs';
 import { mkdir } from "node:fs/promises";
 import * as stream from 'stream';
 import { promisify } from 'util';
+import { unlinkSync } from "node:fs";
 
 (async () => {
-    const path = 'x/files'
-    await mkdir(path, { recursive: true });
-    const finishedDownload = promisify(stream.finished);
+    const cobaltDownload = async (fileName, filePath, pathUrl) => {
+        const url = `https://x.com${pathUrl}`
+        const r = await fetch('https://co.wuk.sh/api/json', {
+            method: 'POST',
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                url
+            })
+        })
 
-    const file = Bun.file('./x/data.json');
-    const contents = await file.json();
+        const data = await r.json()
+        if (data.status !== 'error') {
+            const writer = fs.createWriteStream(filePath)
+            const response = await axios.get(data.url, {
+                responseType: "stream",
+            });
+
+            response.data.pipe(writer)
+            await finishedDownload(writer);
+            return fileName
+        } else {
+            return `COBALT: ${data.text} ${url}`
+        }
+    }
 
     const saveMedia = async (content) => {
         if (content.url) {
@@ -25,7 +47,8 @@ import { promisify } from 'util';
                 repeat = `(${repeatData[title]})`
             }
 
-            let filePath = null;
+            let fileName = null
+            let filePath = null
             if (content.type === 'image' && content.img) {
                 let extension = null
                 const split = content.img.split('?')
@@ -36,7 +59,7 @@ import { promisify } from 'util';
                     const splitByDot = content.img.split('.')
                     extension = splitByDot[splitByDot.length - 1] ?? null
                 }
-                const fileName = `${title}${repeat}.${extension}`
+                fileName = `${title}${repeat}.${extension}`
                 filePath = path + '/' + fileName
 
                 const file = Bun.file('./' + filePath);
@@ -55,14 +78,47 @@ import { promisify } from 'util';
                     console.log(fileName)
                 }
             } else if (content.type === 'gif') {
-                console.log('skip gif...')
-            } else if (content.type === 'video') {
-                console.log('skip video...')
+                const spltUrl = content.url.split('/')
+                fileName = `${title}${repeat}.mp4`
+                filePath = path + '/' + fileName
+                const gifName = `${fileName.replace('.mp4', '')}.gif`
+
+                const file = Bun.file(`./${path}/${gifName}`);
+                if (!await file.exists()) {
+                    const res = await cobaltDownload(fileName, filePath, `/${spltUrl[1]}/${spltUrl[2]}/${spltUrl[3]}`)
+                    if (res.includes('COBALT')) {
+                        console.log(res)
+                    } else {
+                        const command = `ffmpeg -i ${path}/${fileName} -qscale 0 ${path}/${gifName}`
+                        Bun.spawnSync(command.split(' '));
+                        console.log(gifName)
+                        unlinkSync(`${path}/${fileName}`);
+                    }
+
+                    await Bun.sleep(3000);
+                }
+            } else if (content.type === 'video' && content.url?.includes('video')) {
+                fileName = `${title}${repeat}.mp4`
+                filePath = path + '/' + fileName
+                const file = Bun.file('./' + filePath);
+                if (!await file.exists()) {
+                    const res = await cobaltDownload(fileName, filePath, content.url)
+                    console.log(res)
+                    await Bun.sleep(3000);
+                }
             }
 
             return filePath
         }
     }
+
+    // MAIN
+    const path = 'x/files'
+    await mkdir(path, { recursive: true });
+    const finishedDownload = promisify(stream.finished);
+
+    const file = Bun.file('./x/data.json');
+    const contents = await file.json();
 
     let repeatData = {};
     for (let index = 0; index < contents.length; index++) {
@@ -70,12 +126,13 @@ import { promisify } from 'util';
         const filePath = await saveMedia(content)
 
         let group = [];
-        content.group.forEach(async (c) => {
+        for (let i = 0; i < content.group.length; i++) {
+            const c = content.group[i]
             group.push({
                 ...c,
                 downloaded: await saveMedia(c)
             })
-        })
+        }
 
         contents[index] = {
             ...content,
