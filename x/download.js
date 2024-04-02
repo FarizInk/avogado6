@@ -4,11 +4,12 @@ import { mkdir } from "node:fs/promises";
 import * as stream from 'stream';
 import { promisify } from 'util';
 import { unlinkSync } from "node:fs";
+import 'dotenv/config'
 
 (async () => {
     const cobaltDownload = async (fileName, filePath, pathUrl) => {
         const url = `https://x.com${pathUrl}`
-        const r = await fetch('https://co.wuk.sh/api/json', {
+        const r = await fetch(`${process.env.COBALT_API_URL}/api/json`, {
             method: 'POST',
             headers: {
                 Accept: "application/json",
