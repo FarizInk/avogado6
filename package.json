@@ -6,9 +6,9 @@
     "web:scrap": "bun web/scrap.js",
     "web:download": "bun web/download.js",
     "web": "bun run web:scrap && bun run web:download",
-    "x:scrap": "bun x/scrap.js",
-    "x:download": "bun x/download.js",
-    "x": "bun run x:scrap && bun run x:download"
+    "twitter:scrap": "bun x/scrap.js",
+    "twitter:download": "bun x/download.js",
+    "twitter": "bun run twitter:scrap && bun run twitter:download"
   },
   "devDependencies": {
     "@types/bun": "latest"
