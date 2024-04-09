@@ -50,14 +50,14 @@ import 'dotenv/config'
 
             let fileName = null
             let filePath = null
-            if (content.type === 'image' && content.img) {
+            if (content.type === 'image' && content.mediaUrl) {
                 let extension = null
-                const split = content.img.split('?')
+                const split = content.mediaUrl.split('?')
                 const params = new URLSearchParams(split[1]);
                 if (params.get('format')) {
                     extension = params.get('format')
                 } else {
-                    const splitByDot = content.img.split('.')
+                    const splitByDot = content.mediaUrl.split('.')
                     extension = splitByDot[splitByDot.length - 1] ?? null
                 }
                 fileName = `${title}${repeat}.${extension}`
@@ -65,7 +65,7 @@ import 'dotenv/config'
 
                 const file = Bun.file('./' + filePath);
                 if (!await file.exists()) {
-                    let imgUrl = content.img
+                    let imgUrl = content.mediaUrl
                     if (params.get('name')) {
                         imgUrl = imgUrl.replace(`name=${params.get('name')}`, 'name=4096x4096')
                     }
@@ -131,17 +131,17 @@ import 'dotenv/config'
             const c = content.group[i]
             group.push({
                 ...c,
-                downloaded: await saveMedia(c)
+                download: await saveMedia(c)
             })
         }
 
         contents[index] = {
             ...content,
-            downloaded: filePath,
+            download: filePath,
             group
         }
     }
 
     Bun.write('./x/data.json', JSON.stringify(contents));
-    console.log(`Failed: ${contents.filter((f) => f.downloaded === false).length}`)
+    console.log(`Failed: ${contents.filter((f) => f.download === false).length}`)
 })()
