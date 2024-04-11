@@ -179,3 +179,5 @@ web/*.json
 web/files/*
 x/*.json
 x/files/*
+ig/*.json
+ig/files/*

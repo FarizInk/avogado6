@@ -8,7 +8,10 @@
     "web": "bun run web:scrap && bun run web:download",
     "twitter:scrap": "bun x/scrap.js",
     "twitter:download": "bun x/download.js",
-    "twitter": "bun run twitter:scrap && bun run twitter:download"
+    "twitter": "bun run twitter:scrap && bun run twitter:download",
+    "ig:scrap": "bun ig/scrap.js",
+    "ig:download": "bun ig/download.js",
+    "ig": "bun run ig:scrap && bun run ig:download"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -164,6 +164,7 @@ import { authenticator } from 'otplib';
                 countScrollStuck++
             } else {
                 scrollHeight = document.body.scrollHeight
+                countScrollStuck = 0
             }
 
             return {
