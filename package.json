@@ -11,7 +11,8 @@
     "twitter": "bun run twitter:scrap && bun run twitter:download",
     "ig:scrap": "bun ig/scrap.js",
     "ig:download": "bun ig/download.js",
-    "ig": "bun run ig:scrap && bun run ig:download"
+    "ig": "bun run ig:scrap && bun run ig:download",
+    "scrap": "bun web && bun twitter && bun ig"
   },
   "devDependencies": {
     "@types/bun": "latest"
