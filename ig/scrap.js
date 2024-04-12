@@ -11,8 +11,8 @@ const login = async (page) => {
 }
 
 (async () => {
-    if (!process.env.TWITTER_USERNAME && !process.env.TWITTER_PASSWORD) {
-        console.log('fill TWITTER_USERNAME & TWITTER_PASSWORD, skip')
+    if (!process.env.IG_USERNAME && !process.env.IG_PASSWORD) {
+        console.log('fill IG_USERNAME & IG_PASSWORD, skip')
         return null;
     }
 
