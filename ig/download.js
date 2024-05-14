@@ -80,7 +80,7 @@ import 'dotenv/config'
                 }
                 console.log(filePaths)
             } else {
-                console.log(data)
+                console.log(data, url)
             }
             await Bun.sleep(3000);
         }

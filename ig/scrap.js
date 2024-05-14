@@ -39,15 +39,13 @@ const login = async (page) => {
         await login(page)
     }
 
-    await page.goto('https://www.instagram.com/avogado6_jp/')
-    await page.waitForNetworkIdle()
+    await page.goto('https://www.instagram.com/avogado6_jp/', { waitUntil: ['load', 'networkidle0'] })
 
     if (await page.evaluate(() => document.querySelector('body').innerText.split('\n').includes('Log in'))) {
         console.log("logouted 💩")
         unlinkSync('./ig/cookies.json');
         await login(page)
-        await page.goto('https://www.instagram.com/avogado6_jp/')
-        await page.waitForNetworkIdle()
+        await page.goto('https://www.instagram.com/avogado6_jp/', { waitUntil: ['load', 'networkidle0'] })
     }
 
     cookies = await page.cookies();
@@ -79,6 +77,7 @@ const login = async (page) => {
                 countScrollStuck,
                 scrollHeight
             }
+            console.log(payload);
             return payload
         }, scrollHeight, countScrollStuck)
 
