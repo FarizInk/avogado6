@@ -1,0 +1,23 @@
+{
+  "name": "avogado",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "scrap": "npm run scrap:web && npm run scrap:twitter && npm run scrap:ig",
+    "scrap:web": "node scrappers/web.js",
+    "scrap:twitter": "node scrappers/twitter.js",
+    "scrap:ig": "node scrappers/instagram.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "pocketbase": "^0.24.0",
+    "puppeteer": "^23.11.1"
+  }
+}
