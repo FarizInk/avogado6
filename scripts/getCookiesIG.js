@@ -59,6 +59,4 @@ needs.forEach((key, i) => {
 })
 
 // "mid=; ig_did=; csrftoken=; ds_user_id=; sessionid="
-
-
-console.log(result)
+console.info(result)

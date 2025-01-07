@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 // Or import puppeteer from 'puppeteer-core';
 import 'dotenv/config'
+import fs from 'node:fs';
 
 export const scrapperWeb = async () => {
     // const diaryYears = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', null]; // null for latest year
@@ -31,7 +32,7 @@ export const scrapperWeb = async () => {
         console.info(`Scrapping ${year ?? 'current year'}`)
         await page.goto(`https://www.avogado6.com/${year ? 'diary' + year : ''}`);
 
-        const payload = await page.evaluate((year) => {
+        const payload = await page.evaluate(() => {
             let months = []
             document.querySelectorAll('div[data-testid="richTextElement"]').forEach((elem) => months.push(elem.textContent?.replace('.', '-')?.replace('～', '')?.replace('​', '')))
 
@@ -76,6 +77,7 @@ export const scrapperWeb = async () => {
 
     await browser.close();
     console.info('Total Data: ' + data.length)
+    fs.writeFileSync('temp/data_web.json', JSON.stringify(data))
 }
 
 export default scrapperWeb
