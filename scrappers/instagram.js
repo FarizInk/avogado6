@@ -1,10 +1,10 @@
 import puppeteer from 'puppeteer';
 // Or import puppeteer from 'puppeteer-core';
-import { delay } from '../utility.js'
+import { delay } from '../scripts/utility.js'
 import fs from 'node:fs';
 import 'dotenv/config'
 
-export const scrapperIG = async () => {
+export const scrapperIG = async (scrapNew = true) => {
     const cookiesPath = 'temp/cookie_instagram.json'
     const fileCookie = fs.existsSync(cookiesPath) ? fs.readFileSync(cookiesPath) : null
     let cookies = fileCookie ? JSON.parse(fileCookie) : null
@@ -45,18 +45,29 @@ export const scrapperIG = async () => {
     await page.evaluate(() => window.scrollBy(0, 333))
 
     await delay(5)
-    let countWhileLoop = 1;
+    let i = 1;
     let countScrollStuck = 0;
+    let countNothingNew = 0;
     let scrollHeight = 0;
-    let data = [];
 
-    while (countScrollStuck <= 3) {
-        await delay(1.5)
-        const payload = await page.evaluate(async (data, scrollHeight, countScrollStuck) => {
+    const dataPath = 'temp/data_instagram.json'
+    const fileData = fs.existsSync(dataPath) ? fs.readFileSync(dataPath) : null
+    let data = fileData ? JSON.parse(fileData) : []
+    const totalCache = data.length
+
+    while (countScrollStuck <= 3 && countNothingNew <= 3) {
+        await delay(2)
+        const payload = await page.evaluate(async (dataCache, scrollHeight, countScrollStuck) => {
+            let data = []
             document.querySelectorAll('a[role="link"]').forEach((elem) => {
                 const link = elem.getAttribute('href')
-                if (link.includes('/p/') || link.includes('/reel/')) {
-                    data.push(link)
+                const url = link ? `https://instagram.com${link}` : null
+                const isExist = dataCache.find((item) => item.url === url)
+                if (url && (link.includes('/p/') || link.includes('/reel/')) && !isExist) {
+                    data.push({
+                        url: url,
+                        stored: false,
+                    })
                 }
             })
 
@@ -74,18 +85,18 @@ export const scrapperIG = async () => {
             }
         }, data, scrollHeight, countScrollStuck)
 
+        if (scrapNew && payload.data.length === 0) {
+            countNothingNew++
+        } else {
+            countNothingNew = 0
+        }
+
         scrollHeight = payload.scrollHeight
         countScrollStuck = payload.countScrollStuck
-        let filterData = []
-        payload.data.forEach((dataUrl) => {
-            if (!data.find((url) => url === dataUrl)) {
-                filterData.push(dataUrl)
-            }
-        })
-        data = data.concat(filterData)
         await page.evaluate(() => window.scrollBy(0, 1000))
-        console.info(`${countWhileLoop}. Found: ${filterData.length}`);
-        countWhileLoop++
+        console.info(`${i}. Found: ${payload.data.length}`);
+        data = data.concat(payload.data)
+        i++
     }
 
     await browser.close();
@@ -93,6 +104,7 @@ export const scrapperIG = async () => {
     data = [...new Set(data)]
 
     console.info('Total Data: ' + data.length)
+    console.info(`${data.length - totalCache} New`)
     fs.writeFileSync('temp/data_instagram.json', JSON.stringify(data))
 }
 

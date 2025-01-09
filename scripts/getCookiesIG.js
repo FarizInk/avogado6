@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 // Or import puppeteer from 'puppeteer-core';
-import { delay } from '../utility.js'
+import { delay } from './utility.js'
 import fs from 'node:fs';
 import 'dotenv/config'
 

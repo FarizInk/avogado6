@@ -1,10 +1,10 @@
 import puppeteer from 'puppeteer';
 // Or import puppeteer from 'puppeteer-core';
-import { delay } from '../utility.js'
+import { delay } from '../scripts/utility.js'
 import fs from 'node:fs';
 import 'dotenv/config'
 
-export const scrapperTwitter = async () => {
+export const scrapperTwitter = async (scrapNew = true) => {
     const cookiesPath = 'temp/cookie_twitter.json'
     const fileCookie = fs.existsSync(cookiesPath) ? fs.readFileSync(cookiesPath) : null
     let cookies = fileCookie ? JSON.parse(fileCookie) : null
@@ -51,20 +51,33 @@ export const scrapperTwitter = async () => {
 
     await page.evaluate(() => window.scrollBy(0, 570))
 
-    let countWhileLoop = 1;
+    let i = 1;
     let countScrollStuck = 0;
+    let countNothingNew = 0;
     let scrollHeight = 0;
-    let data = [];
 
-    while (countScrollStuck <= 3) {
-        await delay(1.5)
-        const payload = await page.evaluate(async (data, scrollHeight, countScrollStuck) => {
+    const dataPath = 'temp/data_twitter.json'
+    const fileData = fs.existsSync(dataPath) ? fs.readFileSync(dataPath) : null
+    let data = fileData ? JSON.parse(fileData) : []
+    const totalCache = data.length
+
+    while (countScrollStuck <= 2 && countNothingNew <= 2) {
+        await delay(2)
+        const payload = await page.evaluate(async (dataCache, scrollHeight, countScrollStuck) => {
+            let data = [];
             const elems = document.querySelector('div[aria-label^="Timeline"] > div')
                 .querySelectorAll('a')
             for (let i = 0; i < elems.length; i++) {
                 const elem = elems[i];
-                const url = elem.getAttribute('href')
-                data.push(url)
+                const basicUrl = (elem.getAttribute('href') ?? '/').split('/')
+                const url = basicUrl.length >= 3 ? `https://x.com/${basicUrl[1]}/${basicUrl[2]}/${basicUrl[3]}` : null;
+                const isExist = dataCache.find((item) => item.url === url)
+                if (!isExist && url) {
+                    data.push({
+                        url: url,
+                        stored: false,
+                    })
+                }
             }
 
             if (scrollHeight === document.body.scrollHeight) {
@@ -81,18 +94,18 @@ export const scrapperTwitter = async () => {
             }
         }, data, scrollHeight, countScrollStuck)
 
+        if (scrapNew && payload.data.length === 0) {
+            countNothingNew++
+        } else {
+            countNothingNew = 0
+        }
+
         scrollHeight = payload.scrollHeight
         countScrollStuck = payload.countScrollStuck
-        let filterData = []
-        payload.data.forEach((dataUrl) => {
-            if (!data.find((url) => url === dataUrl)) {
-                filterData.push(dataUrl)
-            }
-        })
-        data = data.concat(filterData)
+        console.info(`${i}. Found: ${payload.data.length}`);
+        data = data.concat(payload.data)
         await page.evaluate(() => window.scrollBy(0, 1000))
-        console.info(`${countWhileLoop}. Found: ${filterData.length}`);
-        countWhileLoop++
+        i++
     }
 
     await browser.close();
@@ -100,6 +113,7 @@ export const scrapperTwitter = async () => {
     data = [...new Set(data)]
 
     console.info('Total Data: ' + data.length)
+    console.info(`${data.length - totalCache} New`)
     fs.writeFileSync('temp/data_twitter.json', JSON.stringify(data))
 }
 

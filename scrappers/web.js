@@ -25,14 +25,18 @@ export const scrapperWeb = async () => {
     });
     const page = await browser.newPage();
 
-    let data = [];
+
+    const dataPath = 'temp/data_web.json'
+    const fileData = fs.existsSync(dataPath) ? fs.readFileSync(dataPath) : null
+    let data = fileData ? JSON.parse(fileData) : []
+    const totalCache = data.length
 
     for (let i = diaryYears.length - 1; i >= 0; i--) {
         const year = diaryYears[i];
         console.info(`Scrapping ${year ?? 'current year'}`)
         await page.goto(`https://www.avogado6.com/${year ? 'diary' + year : ''}`);
 
-        const payload = await page.evaluate(() => {
+        const payload = await page.evaluate((dataCache) => {
             let months = []
             document.querySelectorAll('div[data-testid="richTextElement"]').forEach((elem) => months.push(elem.textContent?.replace('.', '-')?.replace('～', '')?.replace('​', '')))
 
@@ -50,34 +54,40 @@ export const scrapperWeb = async () => {
                     const uri = JSON.parse(elem.querySelector('wow-image').getAttribute('data-image-info'))?.imageData.uri ?? null
                     const title = elem.textContent
                     let identifier = `${title}_${date}`
-                    const sameIdentifier = data.filter(item => item.identifier.includes(identifier));
-                    data.push({
-                        title,
-                        url: uri ? baseUrlMedia + '/' + uri : null,
-                        date,
-                        identifier: sameIdentifier.length >= 1 ? `${identifier}(${sameIdentifier.length})` : identifier
-                    })
+                    const isExist = dataCache.find((item) => item.identifier === identifier)
+                    if (!isExist) {
+                        const sameIdentifier = data.filter(item => item.identifier.includes(identifier));
+                        data.push({
+                            title,
+                            url: uri ? baseUrlMedia + '/' + uri : null,
+                            date,
+                            identifier: sameIdentifier.length >= 1 ? `${identifier}(${sameIdentifier.length})` : identifier,
+                            stored: false,
+                        })
+                    }
                 })
             })
 
             return data
-        }, year);
+        }, data);
 
         data = data.concat(payload)
         let report = {}
-        payload.forEach((d) => {
+        const filteredData = data.filter((item) => item.date.includes(year ?? (new Date()).getFullYear()))
+        filteredData.forEach((d) => {
             report = {
                 ...report,
                 [d.date]: report[d.date] ? report[d.date] + 1 : 1,
             }
         })
         Object.keys(report).forEach(key => console.info(`- ${key}: ${report[key]}`))
-        console.info(`TOTAL: ${payload.length} data\n`)
+        console.info(`TOTAL: ${filteredData.length} data\n`)
     }
 
     await browser.close();
     console.info('Total Data: ' + data.length)
-    fs.writeFileSync('temp/data_web.json', JSON.stringify(data))
+    console.info(`${data.length - totalCache} New`)
+    fs.writeFileSync(dataPath, JSON.stringify(data))
 }
 
 export default scrapperWeb
