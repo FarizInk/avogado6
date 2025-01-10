@@ -11,8 +11,8 @@ export const push = async (type) => {
     let countPush = 1
     for (let i = 0; i < data.length; i++) {
         const item = data[i]
-        if (item.stored) continue
-        delete item.stored
+        if (item.id) continue
+        delete item.id
         const urlSplitter = item.url?.split('/') ?? []
         let payload = {
             "identifier": urlSplitter.length > 0 && !urlSplitter[urlSplitter.length - 1] ? urlSplitter[urlSplitter.length - 2] : (urlSplitter[urlSplitter.length - 1] ?? null),
@@ -73,8 +73,8 @@ export const push = async (type) => {
         if (!payload.identifier) continue
 
         try {
-            await pb.collection('avogado').create(payload);
-            data[i].stored = true
+            const pbPayload = await pb.collection('avogado').create(payload);
+            data[i].id = pbPayload.id
             fs.writeFileSync(dataPath, JSON.stringify(data))
             console.info(`${countPush}. ${payload.identifier}`)
             countPush++

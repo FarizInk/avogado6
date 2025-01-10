@@ -17,14 +17,14 @@ export const pull = async (type) => {
             if (type === 'web') {
                 data.push({
                     ...item.data ?? {},
-                    stored: true,
+                    id: item.id,
                 })
             } else if (type === 'twitter' || type === 'instagram') {
                 const url = item.data?.url ?? null
                 if (url) {
                     data.push({
                         url,
-                        stored: true,
+                        id: item.id,
                     })
                 }
             }

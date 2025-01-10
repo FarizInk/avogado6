@@ -66,7 +66,7 @@ export const scrapperIG = async (scrapNew = true) => {
                 if (url && (link.includes('/p/') || link.includes('/reel/')) && !isExist) {
                     data.push({
                         url: url,
-                        stored: false,
+                        id: null,
                     })
                 }
             })

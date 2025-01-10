@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { pocketbase } from "./utility.js"
 
 export const flush = async (type) => {
@@ -17,6 +18,8 @@ export const flush = async (type) => {
             console.info(`Delete ${item.id}`)
         }
     }
+
+    fs.writeFileSync(`temp/data_${type}.json`, JSON.stringify([]))
 }
 
 export default flush;

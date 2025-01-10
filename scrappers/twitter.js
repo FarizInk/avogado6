@@ -75,7 +75,7 @@ export const scrapperTwitter = async (scrapNew = true) => {
                 if (!isExist && url) {
                     data.push({
                         url: url,
-                        stored: false,
+                        id: null,
                     })
                 }
             }

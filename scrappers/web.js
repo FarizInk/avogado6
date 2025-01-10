@@ -62,7 +62,7 @@ export const scrapperWeb = async () => {
                             url: uri ? baseUrlMedia + '/' + uri : null,
                             date,
                             identifier: sameIdentifier.length >= 1 ? `${identifier}(${sameIdentifier.length})` : identifier,
-                            stored: false,
+                            id: null,
                         })
                     }
                 })
