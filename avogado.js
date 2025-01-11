@@ -6,6 +6,7 @@ import { delay } from "./scripts/utility.js";
 import pull from "./scripts/pullers.js";
 import { push } from "./scripts/pushers.js";
 import flush from "./scripts/flushers.js"
+import download from "./scripts/downloaders.js";
 
 const cmd = new Command();
 
@@ -29,11 +30,11 @@ cmd
             await scrapperIG(scrapNew)
         } else {
             await scrapperWeb()
+            await delay(5)
             console.info('-------------------')
-            await delay(10)
             await scrapperTwitter(scrapNew)
+            await delay(5)
             console.info('-------------------')
-            await delay(10)
             await scrapperIG(scrapNew)
         }
     })
@@ -52,8 +53,10 @@ cmd
         } else {
             await pull('web')
             await delay(5)
+            console.info('-------------------')
             await pull('twitter')
             await delay(5)
+            console.info('-------------------')
             await pull('instagram')
         }
     })
@@ -72,17 +75,24 @@ cmd
         } else {
             await push('web')
             await delay(5)
+            console.info('-------------------')
             await push('twitter')
             await delay(5)
+            console.info('-------------------')
             await push('instagram')
         }
     })
 
 cmd
     .command('flush')
-    .description('Script to flush data in')
+    .description('Script to flush data in Pocketbase')
     .option('-t, --type <type>', 'type: web, twitter & ig', null)
     .action(async (options) => await flush(options.type))
 
+
+cmd
+    .command('download')
+    .description('Script to download data in Pocketbase')
+    .action(async () => await download())
 
 cmd.parse(process.argv);
