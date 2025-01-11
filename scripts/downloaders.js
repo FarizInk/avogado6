@@ -91,6 +91,7 @@ export const download = async (type) => {
     }
     bar.stop()
 
+    console.info()
     removeAllFile('./temp/files/')
 }
 
@@ -225,7 +226,7 @@ const removeAllFile = (folderPath) => {
             return console.error(`Unable to read folder: ${err.message}`);
         }
 
-        const bar = cliLoading(`Removing Cache ${type}`)
+        const bar = cliLoading(`Removing Cache`)
         bar.start(files.length - 1, 0)
         let countDelete = 1;
         files.forEach((file, key) => {
@@ -248,9 +249,10 @@ const removeAllFile = (folderPath) => {
                         if (err) {
                             return console.error(`Unable to delete file: ${filePath}, ${err.message}`);
                         }
-                        bar.update(countDelete)
-                        countDelete++
                     });
+
+                    bar.update(countDelete)
+                    countDelete++
                 }
             });
         });
