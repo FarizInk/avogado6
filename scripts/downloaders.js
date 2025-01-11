@@ -1,10 +1,98 @@
-import { pocketbase } from "./utility.js";
+import { cliLoading, pocketbase } from "./utility.js";
 import * as fs from 'fs';
 import * as stream from 'stream';
 import { promisify } from 'util';
 import axios from "axios";
 import { File } from "buffer";
 import path from "path";
+
+export const downloadFile = async (name, url, ext = null) => {
+    const finishedDownload = promisify(stream.finished);
+
+    const extensions = ['.png', '.jpg', '.jpeg', '.mp4', '.webp']
+    let extension = null
+    extensions.forEach((e) => (extension === null && url.includes(e)) ? extension = e : null)
+
+    if (extension === null) {
+        const response = await fetch(url);
+        const contentType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? null
+        if (contentType) extension = mimes[contentType] ? '.' + mimes[contentType] : null
+    }
+
+
+    const filename = `${name}${ext ?? extension}`
+    const filePath = `./temp/files/${filename}`
+    const writer = fs.createWriteStream(filePath)
+    try {
+        const response = await axios.get(url, {
+            responseType: "stream",
+        });
+
+        response.data.pipe(writer)
+        await finishedDownload(writer);
+
+        return filePath
+    } catch (error) {
+        return null
+    }
+}
+
+export const download = async (type) => {
+    const pb = await pocketbase()
+    const filter = `type = '${type}' && files:length = 0`
+
+    const a = await pb.collection('avogado').getList(1, 200, { filter });
+    const bar = cliLoading(`Downloading ${type}`)
+    bar.start(a.totalItems, 0)
+
+    let countDownload = 1
+    for (let i = a.totalPages; i >= 1; i--) {
+        const payload = await pb.collection('avogado').getList(i, 200, { filter });
+        for (let j = 0; j < payload.items.length; j++) {
+            const item = payload.items[j];
+            // this is for web
+            const urls = [item.data?.url] ?? []
+
+            let fileIds = []
+            for (let k = 0; k < urls.length; k++) {
+                const url = urls[k];
+                const splitUrl = url.split('/')
+                const fileName = splitUrl[splitUrl.length - 1]
+                const downloadPath = await downloadFile(fileName, url)
+
+                const fileBuffer = fs.readFileSync(downloadPath)
+                const newFile = new File([Buffer.from(fileBuffer)], fileName, {
+                    type: getMimeTypeFromFileName(fileName)
+                })
+                // console.info(`${fileName} (${bytesToMB(newFile.size)}MB)`)
+                try {
+                    const createFile = await pb.collection('avogado_files').create({
+                        avogado_id: item.id,
+                        file: newFile,
+                        data: {
+                            size: newFile.size,
+                            type: newFile.type,
+                            name: newFile.name
+                        },
+                    });
+                    fileIds.push(createFile.id)
+                } catch (error) {
+                    console.error(`Error Upload: ${item.id}`)
+                }
+            }
+
+            await pb.collection('avogado').update(item.id, {
+                ...item,
+                files: fileIds
+            })
+            bar.update(countDownload)
+            countDownload++
+        }
+    }
+    bar.stop()
+
+    removeAllFile('./temp/files/')
+}
 
 export const mimes = {
     'audio/aac': 'aac',
@@ -85,114 +173,88 @@ export const mimes = {
     'application/x-7z-compressed': '7z'
 };
 
-export const downloadFile = async (name, url, ext = null) => {
-    const finishedDownload = promisify(stream.finished);
-
-    const extensions = ['.png', '.jpg', '.jpeg', '.mp4', '.webp']
-    let extension = null
-    extensions.forEach((e) => (extension === null && url.includes(e)) ? extension = e : null)
-
-    if (extension === null) {
-        const response = await fetch(url);
-        const contentType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? null
-        if (contentType) extension = mimes[contentType] ? '.' + mimes[contentType] : null
+export const getMimeTypeFromFileName = (fileName) => {
+    if (!fileName || typeof fileName !== "string") {
+        throw new Error("Invalid file name");
     }
 
+    const mimeTypes = {
+        "txt": "text/plain",
+        "html": "text/html",
+        "css": "text/css",
+        "js": "application/javascript",
+        "json": "application/json",
+        "xml": "application/xml",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "svg": "image/svg+xml",
+        "pdf": "application/pdf",
+        "doc": "application/msword",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xls": "application/vnd.ms-excel",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "ppt": "application/vnd.ms-powerpoint",
+        "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "zip": "application/zip",
+        "rar": "application/vnd.rar",
+        "mp3": "audio/mpeg",
+        "mp4": "video/mp4",
+        "wav": "audio/wav",
+        "avi": "video/x-msvideo",
+        "webm": "video/webm",
+    };
 
-    const filename = `${name}${ext ?? extension}`
-    const filePath = `./temp/files/${filename}`
-    const writer = fs.createWriteStream(filePath)
-    try {
-        const response = await axios.get(url, {
-            responseType: "stream",
-        });
+    const extension = fileName.split('.').pop().toLowerCase();
 
-        response.data.pipe(writer)
-        await finishedDownload(writer);
+    return mimeTypes[extension] || "application/octet-stream"; // Default to binary data
+};
 
-        return filePath
-    } catch (error) {
-        return null
+export const bytesToMB = (bytes) => {
+    if (typeof bytes !== "number" || bytes < 0) {
+        throw new Error("Invalid input: bytes must be a non-negative number");
     }
-}
-
-export const download = async () => {
-    const pb = await pocketbase()
-    const filter = "type = 'web' && files:length = 0"
-
-    const a = await pb.collection('avogado').getList(1, 200, { filter });
-    for (let i = a.totalPages; i >= 1; i--) {
-        const payload = await pb.collection('avogado').getList(i, 200, { filter });
-        if (i === 1) {
-            console.info(`downloading ${payload.totalItems} items`)
-        }
-        for (let j = 0; j < payload.items.length; j++) {
-            const item = payload.items[j];
-            // this is for web
-            const urls = [item.data?.url] ?? []
-
-            let fileIds = []
-            for (let k = 0; k < urls.length; k++) {
-                const url = urls[k];
-                const splitUrl = url.split('/')
-                const fileName = splitUrl[splitUrl.length - 1]
-                const downloadPath = await downloadFile(fileName, url)
-
-                const fileBuffer = fs.readFileSync(downloadPath)
-                const newFile = new File([Buffer.from(fileBuffer)], fileName)
-                console.log(newFile.size, fileName)
-                try {
-                    const createFile = await pb.collection('avogado_files').create({
-                        avogado_id: item.id,
-                        file: newFile,
-                    });
-                    fileIds.push(createFile.id)
-                } catch (error) {
-                    console.error(`Error Upload: ${item.id}`)
-                }
-            }
-
-            await pb.collection('avogado').update(item.id, {
-                ...item,
-                files: fileIds
-            })
-        }
-    }
-
-    removeAllFile('./temp/files/')
-}
+    const MB = bytes / (1024 * 1024);
+    return parseFloat(MB.toFixed(2)); // Returns the result rounded to 2 decimal places
+};
 
 const removeAllFile = (folderPath) => {
     fs.readdir(folderPath, (err, files) => {
         if (err) {
             return console.error(`Unable to read folder: ${err.message}`);
         }
-    
-        files.forEach((file) => {
+
+        const bar = cliLoading(`Removing Cache ${type}`)
+        bar.start(files.length - 1, 0)
+        let countDelete = 1;
+        files.forEach((file, key) => {
             const filePath = path.join(folderPath, file);
-    
+
             // Skip .gitignore file
             if (file === '.gitignore') {
                 return;
             }
-    
+
             // Check if the item is a file
             fs.stat(filePath, (err, stats) => {
                 if (err) {
                     return console.error(`Unable to get stats for file: ${filePath}, ${err.message}`);
                 }
-    
+
                 if (stats.isFile()) {
                     // Delete the file
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             return console.error(`Unable to delete file: ${filePath}, ${err.message}`);
                         }
-                        console.log(`Deleted: ${filePath}`);
+                        bar.update(countDelete)
+                        countDelete++
                     });
                 }
             });
         });
+        bar.stop()
     });
 }
 

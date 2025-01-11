@@ -39,6 +39,7 @@ cmd
         }
     })
 
+//  NOTE: should implement cli-progress
 cmd
     .command('pull')
     .description('Script to pull data from pocketbase')
@@ -53,10 +54,10 @@ cmd
         } else {
             await pull('web')
             await delay(5)
-            console.info('-------------------')
+            console.info()
             await pull('twitter')
             await delay(5)
-            console.info('-------------------')
+            console.info()
             await pull('instagram')
         }
     })
@@ -75,10 +76,10 @@ cmd
         } else {
             await push('web')
             await delay(5)
-            console.info('-------------------')
+            console.info()
             await push('twitter')
             await delay(5)
-            console.info('-------------------')
+            console.info()
             await push('instagram')
         }
     })
@@ -89,10 +90,10 @@ cmd
     .option('-t, --type <type>', 'type: web, twitter & ig', null)
     .action(async (options) => await flush(options.type))
 
-
 cmd
     .command('download')
     .description('Script to download data in Pocketbase')
-    .action(async () => await download())
+    .option('-t, --type <type>', 'type: web, twitter & ig', null)
+    .action(async (options) => await download(options.type))
 
 cmd.parse(process.argv);

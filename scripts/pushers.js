@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { delay, pocketbase } from './utility.js'
+import { cliLoading, delay, pocketbase } from './utility.js'
 import fs from 'node:fs';
 
 export const push = async (type) => {
@@ -7,6 +7,9 @@ export const push = async (type) => {
     const dataPath = `temp/data_${type}.json`
     const fileData = fs.existsSync(dataPath) ? fs.readFileSync(dataPath) : null
     let data = fileData ? JSON.parse(fileData) : []
+
+    const bar = cliLoading(`Pushing ${type}`)
+    bar.start(data.filter((item) => item.id === null).length, 0)
 
     let countPush = 1
     for (let i = 0; i < data.length; i++) {
@@ -76,7 +79,7 @@ export const push = async (type) => {
             const pbPayload = await pb.collection('avogado').create(payload);
             data[i].id = pbPayload.id
             fs.writeFileSync(dataPath, JSON.stringify(data))
-            console.info(`${countPush}. ${payload.identifier}`)
+            bar.update(countPush)
             countPush++
             if (type === 'instagram' || type === 'twitter') await delay(2)
         } catch (err) {
@@ -85,4 +88,5 @@ export const push = async (type) => {
             }
         }
     }
+    bar.stop()
 }

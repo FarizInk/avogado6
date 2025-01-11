@@ -1,17 +1,18 @@
 import fs from 'node:fs';
-import { pocketbase } from './utility.js';
+import { cliLoading, pocketbase } from './utility.js';
 
 export const pull = async (type) => {
     let path = `temp/data_${type}.json`
     const pb = await pocketbase()
     let data = []
+    const bar = cliLoading(`Pulling ${type}`)
+    let countPull = 1
     let totalPages = 1;
     for (let i = 1; i <= totalPages; i++) {
         const payload = await pb.collection('avogado').getList(i, 200, { filter: `type = '${type}'` });
         if (i === 1) {
-            console.info(`pulling ${payload.totalItems} items from type ${type}`)
+            bar.start(payload.totalItems, 0)
         }
-        console.info(`Pulling page ${i}: ${payload.items.length} items`)
         totalPages = payload.totalPages
         payload.items?.forEach((item) => {
             if (type === 'web') {
@@ -28,8 +29,12 @@ export const pull = async (type) => {
                     })
                 }
             }
+            bar.update(countPull)
+            countPull++
         })
     }
+
+    bar.stop()
 
     fs.writeFileSync(path, JSON.stringify(data))
 }
