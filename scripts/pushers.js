@@ -52,7 +52,7 @@ export const push = async (type) => {
                 url: item.url,
             }
             try {
-                const { data: responseData } = await axios.get(`${item.url.toString()}?__a=1&__d=dis`, {
+                const { data: responseData } = await axios.get(`${item.url.replace('/reel/', '/p/').replace('/reels/', '/p/').toString()}?__a=1&__d=dis`, {
                     headers: {
                         'Cookie': process.env.IG_COOKIES
                     },
@@ -81,12 +81,13 @@ export const push = async (type) => {
             fs.writeFileSync(dataPath, JSON.stringify(data))
             bar.update(countPush)
             countPush++
-            if (type === 'instagram' || type === 'twitter') await delay(2)
         } catch (err) {
             if (err?.response?.data?.identifier?.code !== 'validation_not_unique') {
                 console.error(err)
             }
         }
+        
+        if (type === 'instagram' || type === 'twitter') await delay(2)
     }
     bar.stop()
 }
