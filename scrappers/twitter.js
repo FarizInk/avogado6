@@ -65,8 +65,7 @@ export const scrapperTwitter = async (scrapNew = true) => {
         await delay(2)
         const payload = await page.evaluate(async (dataCache, scrollHeight, countScrollStuck) => {
             let data = [];
-            const elems = document.querySelector('div[aria-label^="Timeline"] > div')
-                .querySelectorAll('a')
+            const elems = document.querySelector('div[aria-label^="Timeline"] > div')?.querySelectorAll('a') ?? []
             for (let i = 0; i < elems.length; i++) {
                 const elem = elems[i];
                 const basicUrl = (elem.getAttribute('href') ?? '/').split('/')

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { cliLoading, delay, pocketbase } from './utility.js'
+import { cliLoading, delay, getDataIG, pocketbase } from './utility.js'
 import fs from 'node:fs';
 
 export const push = async (type) => {
@@ -37,8 +37,8 @@ export const push = async (type) => {
             try {
                 const { data: responseData } = await axios.get(item.url.replace('/x.com', '/api.vxtwitter.com'))
                 dataJSON = {
+                    ...responseData,
                     ...dataJSON,
-                    ...responseData
                 }
             } catch (error) {
                 console.error(error)
@@ -51,23 +51,13 @@ export const push = async (type) => {
             let dataJSON = {
                 url: item.url,
             }
-            try {
-                const { data: responseData } = await axios.get(`${item.url.replace('/reel/', '/p/').replace('/reels/', '/p/').toString()}?__a=1&__d=dis`, {
-                    headers: {
-                        'Cookie': process.env.IG_COOKIES
-                    },
-                    withCredentials: true
-                })
-                if (responseData?.items && responseData?.items.length) {
-                    const responseItem = responseData?.items[0] ?? null
-                    dataJSON = {
-                        ...dataJSON,
-                        ...responseItem
-                    }
+            const responseData = await getDataIG(item.url)
+            if (responseData?.items && responseData?.items.length) {
+                const responseItem = responseData?.items[0] ?? null
+                dataJSON = {
+                    ...responseItem,
+                    ...dataJSON,
                 }
-            } catch (error) {
-                console.error(error)
-                continue;
             }
             payload.data = dataJSON
             payload.date = dataJSON.taken_at ? new Date(dataJSON.taken_at * 1000)?.toISOString() : null

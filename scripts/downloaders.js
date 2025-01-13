@@ -1,4 +1,4 @@
-import { cliLoading, pocketbase } from "./utility.js";
+import { cliLoading, delay, getDataIG, pocketbase } from "./utility.js";
 import * as fs from 'fs';
 import * as stream from 'stream';
 import { promisify } from 'util';
@@ -16,11 +16,11 @@ export const downloadFile = async (name, url, ext = null) => {
     if (extension === null) {
         const response = await fetch(url);
         const contentType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? null
-        if (contentType) extension = mimes[contentType] ? '.' + mimes[contentType] : null
+        if (contentType) extension = mimes[contentType] ? `.${mimes[contentType]}` : null
     }
 
 
-    const filename = `${name}${ext ?? extension}`
+    const filename = name.includes('.') ? name : `${name}${ext ?? extension}`
     const filePath = `./temp/files/${filename}`
     const writer = fs.createWriteStream(filePath)
     try {
@@ -38,6 +38,7 @@ export const downloadFile = async (name, url, ext = null) => {
 }
 
 export const download = async (type) => {
+    if (type === null) return;
     const pb = await pocketbase()
     const filter = `type = '${type}' && files:length = 0`
 
@@ -50,13 +51,49 @@ export const download = async (type) => {
         const payload = await pb.collection('avogado').getList(i, 200, { filter });
         for (let j = 0; j < payload.items.length; j++) {
             const item = payload.items[j];
-            // this is for web
-            const urls = [item.data?.url] ?? []
+            if (item.metadata?.download_failed) {
+                const responseData = await getDataIG(item.data.url)
+                if (responseData?.items && responseData?.items.length) {
+                    const responseItem = responseData?.items[0] ?? null
+                    item.data = {
+                        ...responseItem,
+                        ...item.data,
+                    }
+                    delete item.metadata.download_failed
+                }
+                await delay(2)
+            }
+
+            let urls = []
+            if (type === 'web') {
+                if (item.data?.url) urls.push(item.data.url)
+            } else if (type === 'twitter') {
+                item.data?.mediaURLs?.forEach((url) => urls.push(url))
+            } else if (type === 'instagram') {
+                if (item.data.url.toString().includes('/reel')) {
+                    const video = item.data?.video_versions ? item.data?.video_versions[0] : null
+                    if (video && video.url) urls.push(video.url)
+                } else {
+                    const medias = item.data?.carousel_media ?? [item.data]
+                    for (let i = 0; i < medias.length; i++) {
+                        const media = medias[i];
+                        let url = null
+                        if (media.video_versions?.length >= 1) {
+                            url = media.video_versions[0]?.url
+                        } else {
+                            url = media.image_versions2?.candidates[0]?.url ?? null
+                        }
+                        if (url) urls.push(url)
+                    }
+                }
+            }
 
             let fileIds = []
             for (let k = 0; k < urls.length; k++) {
                 const url = urls[k];
-                const splitUrl = url.split('/')
+                let urlObj = new URL(url);
+                urlObj.search = "";
+                const splitUrl = urlObj.toString().split('/')
                 const fileName = splitUrl[splitUrl.length - 1]
                 const downloadPath = await downloadFile(fileName, url)
 
@@ -81,10 +118,12 @@ export const download = async (type) => {
                 }
             }
 
-            await pb.collection('avogado').update(item.id, {
-                ...item,
-                files: fileIds
-            })
+            if (fileIds.length) {
+                await pb.collection('avogado').update(item.id, {
+                    ...item,
+                    files: fileIds
+                })
+            }
             bar.update(countDownload)
             countDownload++
         }
