@@ -9,15 +9,21 @@ export const scrapperIG = async (scrapNew = true) => {
 	const fileCookie = fs.existsSync(cookiesPath) ? fs.readFileSync(cookiesPath) : null;
 	let cookies = fileCookie ? JSON.parse(fileCookie) : null;
 
-	// Launch the browser and open a new blank page
-	const browser = await puppeteer.launch({
+
+	let conf = {
 		headless: 'shell',
 		defaultViewport: null,
 		args: [
 			'--no-sandbox',
 			'--window-size=500,1080' // comment this even not in headless
 		]
-	});
+	}
+	if (process.env.EXECUTABLE_PATH) {
+		conf.executablePath = process.env.EXECUTABLE_PATH;
+	}
+
+	// Launch the browser and open a new blank page
+	const browser = await puppeteer.launch(conf);
 
 	if (cookies) {
 		await browser.setCookie(...cookies);
