@@ -68,7 +68,7 @@ export const push = async (type) => {
 			payload.date = dataJSON.taken_at ? new Date(dataJSON.taken_at * 1000)?.toISOString() : null;
 		}
 
-		if (!payload.identifier) continue;
+		if (!payload.identifier || !payload.date) continue;
 
 		try {
 			const pbPayload = await pb.collection('avogado').create(payload);
