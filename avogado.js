@@ -56,10 +56,10 @@ cmd
 			await scrapperIG(scrapNew);
 		} else {
 			await scrapperWeb();
-			await delay(5);
+			await delay(3);
 			console.info('-------------------');
 			await scrapperTwitter(scrapNew);
-			await delay(5);
+			await delay(3);
 			console.info('-------------------');
 			await scrapperIG(scrapNew);
 		}
@@ -72,10 +72,10 @@ cmd
 	.action(async (options) => {
 		if (options.type === null) {
 			await pull('web');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await pull('twitter');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await pull('instagram');
 		} else {
@@ -94,10 +94,10 @@ cmd
 	.action(async (options) => {
 		if (options.type === null) {
 			await push('web');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await push('twitter');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await push('instagram');
 		} else {
@@ -118,10 +118,10 @@ cmd
 	.action(async (options) => {
 		if (options.type === null) {
 			await download('web');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await download('twitter');
-			await delay(5);
+			await delay(1.5);
 			console.info();
 			await download('instagram');
 		} else {
