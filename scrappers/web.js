@@ -17,11 +17,17 @@ export const scrapperWeb = async () => {
 		year++;
 	}
 
-	// Launch the browser and open a new blank page
-	const browser = await puppeteer.launch({
+	let conf = {
 		headless: 'shell',
 		defaultViewport: null
-	});
+	}
+
+	if (process.env.EXECUTABLE_PATH) {
+		conf.executablePath = process.env.EXECUTABLE_PATH;
+	}
+
+	// Launch the browser and open a new blank page
+	const browser = await puppeteer.launch(conf);
 	const page = await browser.newPage();
 
 	const dataPath = 'temp/data_web.json';

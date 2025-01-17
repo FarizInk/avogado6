@@ -1,0 +1,1 @@
+node avogado.js pull && node avogado.js scrap && node avogado.js push && node avogado.js download

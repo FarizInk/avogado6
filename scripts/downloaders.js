@@ -253,11 +253,11 @@ const removeAllFile = (folderPath) => {
 							return console.error(`Unable to delete file: ${filePath}, ${err.message}`);
 						}
 					});
-
-					bar.update(countDelete);
-					countDelete++;
 				}
 			});
+
+			bar.update(countDelete);
+			countDelete++;
 		});
 		bar.stop();
 	});
