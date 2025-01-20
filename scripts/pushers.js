@@ -23,14 +23,14 @@ export const push = async (type) => {
 					? urlSplitter[urlSplitter.length - 2]
 					: (urlSplitter[urlSplitter.length - 1] ?? null),
 			type: type,
-			data: null,
 			date: null
 		};
+		let info = null;
 
 		if (type === 'web') {
 			if (!item.identifier) continue;
 			payload.identifier = item.identifier;
-			payload.data = item;
+			info = item;
 			payload.date = item.date ? new Date(item.date).toISOString() : null;
 		} else if (type === 'twitter') {
 			if (!item.url) continue;
@@ -49,7 +49,7 @@ export const push = async (type) => {
 				console.error(error);
 				continue;
 			}
-			payload.data = dataJSON;
+			info = dataJSON;
 			payload.date = dataJSON.date ? new Date(dataJSON.date)?.toISOString() : null;
 		} else if (type === 'instagram') {
 			if (!item.url) continue;
@@ -64,9 +64,10 @@ export const push = async (type) => {
 					...dataJSON
 				};
 			}
-			payload.data = dataJSON;
+			info = dataJSON;
 			payload.date = dataJSON.taken_at ? new Date(dataJSON.taken_at * 1000)?.toISOString() : null;
 		}
+
 
 		if (!payload.identifier || !payload.date) continue;
 
@@ -74,6 +75,12 @@ export const push = async (type) => {
 			const pbPayload = await pb.collection('avogado').create(payload);
 			data[i].id = pbPayload.id;
 			fs.writeFileSync(dataPath, JSON.stringify(data));
+			if (info !== null) {
+				await pb.collection('avogado_info').create({
+					data: info,
+					avogado: pbPayload.id
+				});
+			}
 			bar.update(countPush);
 			countPush++;
 		} catch (err) {

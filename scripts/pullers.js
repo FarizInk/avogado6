@@ -9,7 +9,7 @@ export const pull = async (type) => {
 	let countPull = 1;
 	let totalPages = 1;
 	for (let i = 1; i <= totalPages; i++) {
-		const payload = await pb.collection('avogado').getList(i, 200, { filter: `type = '${type}'` });
+		const payload = await pb.collection('avogado').getList(i, 200, { filter: `type = '${type}'`, expand: 'info' });
 		if (i === 1) {
 			bar.start(payload.totalItems, 0);
 		}
@@ -17,11 +17,11 @@ export const pull = async (type) => {
 		payload.items?.forEach((item) => {
 			if (type === 'web') {
 				data.push({
-					...(item.data ?? {}),
+					...(item.expand?.info?.data ?? {}),
 					id: item.id
 				});
 			} else if (type === 'twitter' || type === 'instagram') {
-				const url = item.data?.url ?? null;
+				const url = item.expand?.info?.data?.url ?? null;
 				if (url) {
 					data.push({
 						url,

@@ -47,10 +47,10 @@ export const download = async (type) => {
 
 	let countDownload = 1;
 	for (let i = a.totalPages; i >= 1; i--) {
-		const payload = await pb.collection('avogado').getList(i, 200, { filter });
+		const payload = await pb.collection('avogado').getList(i, 200, { filter, expand: 'info' });
 		for (let j = 0; j < payload.items.length; j++) {
 			const item = payload.items[j];
-			let urls = getUrls(type, item.data);
+			let urls = getUrls(type, item.expand?.info?.data);
 			let fileIds = [];
 			for (let k = 0; k < urls.length; k++) {
 				const url = urls[k];
