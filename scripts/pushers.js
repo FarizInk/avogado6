@@ -77,9 +77,14 @@ export const push = async (type) => {
 			data[i].id = pbPayload.id;
 			fs.writeFileSync(dataPath, JSON.stringify(data));
 			if (info !== null) {
-				await pb.collection('avogado_info').create({
+				const infoPayload = await pb.collection('avogado_info').create({
 					data: info,
 					avogado: pbPayload.id
+				});
+
+				await pb.collection('avogado').update(pbPayload.id, {
+					...pbPayload,
+					info: infoPayload.id
 				});
 			}
 			bar.update(countPush);
