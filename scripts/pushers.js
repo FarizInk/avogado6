@@ -23,7 +23,8 @@ export const push = async (type) => {
 					? urlSplitter[urlSplitter.length - 2]
 					: (urlSplitter[urlSplitter.length - 1] ?? null),
 			type: type,
-			date: null
+			date: null,
+			url: item.url
 		};
 		let info = null;
 
