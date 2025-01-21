@@ -9,7 +9,9 @@ export const pull = async (type) => {
 	let countPull = 1;
 	let totalPages = 1;
 	for (let i = 1; i <= totalPages; i++) {
-		const payload = await pb.collection('avogado').getList(i, 200, { filter: `type = '${type}'`, expand: 'info' });
+		const payload = await pb
+			.collection('avogado')
+			.getList(i, 200, { filter: `type = '${type}'`, expand: 'info' });
 		if (i === 1) {
 			bar.start(payload.totalItems, 0);
 		}

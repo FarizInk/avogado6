@@ -16,7 +16,7 @@ export const scrapperTwitter = async (scrapNew = true) => {
 			'--no-sandbox',
 			'--window-size=500,1080' // comment this even not in headless
 		]
-	}
+	};
 	if (process.env.EXECUTABLE_PATH) {
 		conf.executablePath = process.env.EXECUTABLE_PATH;
 	}

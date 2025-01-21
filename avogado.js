@@ -16,7 +16,7 @@ cmd
 	.description('Node.js Artisan-like CLI')
 	.version('1.0.0')
 	.action(async () => {
-		const types = ['web', 'twitter', 'instagram']
+		const types = ['web', 'twitter', 'instagram'];
 		await scrapperWeb();
 		await delay(5);
 		console.info('-------------------');
@@ -29,13 +29,13 @@ cmd
 		types.forEach(async (type) => {
 			await delay(5);
 			await push(type);
-		})
+		});
 
 		types.forEach(async (type) => {
 			await delay(5);
 			await download(type);
-		})
-	})
+		});
+	});
 
 cmd
 	.command('scrap')

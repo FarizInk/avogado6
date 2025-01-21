@@ -1,12 +1,13 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 
-	let bookmarks = $state(false);
-	let fullUrls = $state(true);
-	let profileRadioValue = $state('benoit');
+	let filterWeb = $state(true);
+	let filterTwitter = $state(true);
+	let filterIG = $state(true);
+	let sort = $state('newest');
 </script>
 
-<div class="fixed bottom-5 left-0 right-0 mx-auto text-center w-fit">
+<div class="fixed bottom-5 left-0 right-0 mx-auto w-fit text-center">
 	<Menubar.Root>
 		<Menubar.Menu>
 			<Menubar.Trigger>File</Menubar.Trigger>
@@ -60,37 +61,22 @@
 			</Menubar.Content>
 		</Menubar.Menu>
 		<Menubar.Menu>
-			<Menubar.Trigger>View</Menubar.Trigger>
+			<Menubar.Trigger>Filter</Menubar.Trigger>
 			<Menubar.Content>
-				<Menubar.CheckboxItem bind:checked={bookmarks}
-					>Always Show Bookmarks Bar</Menubar.CheckboxItem
-				>
-				<Menubar.CheckboxItem bind:checked={fullUrls}>Always Show Full URLs</Menubar.CheckboxItem>
+				<Menubar.CheckboxItem bind:checked={filterWeb}>Web</Menubar.CheckboxItem>
+				<Menubar.CheckboxItem bind:checked={filterTwitter}>Twitter / X</Menubar.CheckboxItem>
+				<Menubar.CheckboxItem bind:checked={filterIG}>Instagram</Menubar.CheckboxItem>
 				<Menubar.Separator />
-				<Menubar.Item inset>
-					Reload <Menubar.Shortcut>⌘R</Menubar.Shortcut>
-				</Menubar.Item>
-				<Menubar.Item inset>
-					Force Reload <Menubar.Shortcut>⇧⌘R</Menubar.Shortcut>
-				</Menubar.Item>
-				<Menubar.Separator />
-				<Menubar.Item inset>Toggle Fullscreen</Menubar.Item>
-				<Menubar.Separator />
-				<Menubar.Item inset>Hide Sidebar</Menubar.Item>
+				<Menubar.Item inset>All</Menubar.Item>
 			</Menubar.Content>
 		</Menubar.Menu>
 		<Menubar.Menu>
-			<Menubar.Trigger>Profiles</Menubar.Trigger>
+			<Menubar.Trigger>Sort</Menubar.Trigger>
 			<Menubar.Content>
-				<Menubar.RadioGroup bind:value={profileRadioValue}>
-					<Menubar.RadioItem value="andy">Andy</Menubar.RadioItem>
-					<Menubar.RadioItem value="benoit">Benoit</Menubar.RadioItem>
-					<Menubar.RadioItem value="Luis">Luis</Menubar.RadioItem>
+				<Menubar.RadioGroup bind:value={sort}>
+					<Menubar.RadioItem value="newest">Newest</Menubar.RadioItem>
+					<Menubar.RadioItem value="oldest">Oldest</Menubar.RadioItem>
 				</Menubar.RadioGroup>
-				<Menubar.Separator />
-				<Menubar.Item inset>Edit...</Menubar.Item>
-				<Menubar.Separator />
-				<Menubar.Item inset>Add Profile...</Menubar.Item>
 			</Menubar.Content>
 		</Menubar.Menu>
 	</Menubar.Root>

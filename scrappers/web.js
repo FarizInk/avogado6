@@ -20,7 +20,7 @@ export const scrapperWeb = async () => {
 	let conf = {
 		headless: 'shell',
 		defaultViewport: null
-	}
+	};
 
 	if (process.env.EXECUTABLE_PATH) {
 		conf.executablePath = process.env.EXECUTABLE_PATH;

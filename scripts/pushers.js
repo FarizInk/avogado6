@@ -24,7 +24,11 @@ export const push = async (type) => {
 					: (urlSplitter[urlSplitter.length - 1] ?? null),
 			type: type,
 			date: null,
-			url: item.url
+			url: item.url,
+			metadata: {
+				title: null,
+				description: null
+			}
 		};
 		let info = null;
 
@@ -69,10 +73,10 @@ export const push = async (type) => {
 			payload.date = dataJSON.taken_at ? new Date(dataJSON.taken_at * 1000)?.toISOString() : null;
 		}
 
-
 		if (!payload.identifier || !payload.date) continue;
 
 		try {
+			payload.metadata.title = info?.title ?? info?.text ?? info?.caption?.text ?? null;
 			const pbPayload = await pb.collection('avogado').create(payload);
 			data[i].id = pbPayload.id;
 			fs.writeFileSync(dataPath, JSON.stringify(data));

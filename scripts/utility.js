@@ -70,5 +70,5 @@ export const getUrls = (type, data) => {
 		}
 	}
 
-	return urls
-}
+	return urls;
+};

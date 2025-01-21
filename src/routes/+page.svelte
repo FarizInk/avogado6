@@ -1,13 +1,25 @@
 <script>
-	import { Button } from '$lib/components/ui/button/index.ts';
+	import PocketBase from 'pocketbase';
+	import { onMount } from 'svelte';
+	import Card from '@/components/Card/Card.svelte';
+
+	const pb = new PocketBase('https://space.fariz.dev');
+
+	let data = [];
+	onMount(async () => {
+		// fetch a paginated records list
+		const resultList = await pb.collection('avogado').getList(1, 15, {
+			expand: 'files',
+			sort: '-date'
+		});
+
+		console.log(resultList);
+		data = resultList.items;
+	});
 </script>
 
-<div class="container mx-auto px-4">
-	<h1 class="font-bold">Welcome to your library project</h1>
-	<p>Create your package using @sveltejs/package and preview/showcase your work with SvelteKit</p>
-	<p>
-		Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation
-	</p>
-
-	<Button>Click me</Button>
+<div class="container mx-auto min-h-screen max-w-[500px] space-y-4 px-2 pb-10 pt-5">
+	{#each data as item}
+		<Card {item} />
+	{/each}
 </div>
