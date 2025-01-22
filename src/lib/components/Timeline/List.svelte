@@ -12,8 +12,7 @@
 	import { type CarouselAPI } from '$lib/components/ui/carousel/context.ts';
 	import { formatDateTime } from '@/utils.ts';
 
-	let props = $props();
-	let item = props.item || null;
+	let { item } = $props();
 
 	let api = $state<CarouselAPI>();
 	let current = $state(0);

@@ -11,7 +11,8 @@
 <ModeWatcher />
 <Metadata />
 <Toaster />
+<!-- data-vaul-drawer-wrapper must be out of vaul drawer component -->
 <div class="relative min-h-screen bg-background" id="page" data-vaul-drawer-wrapper>
 	{@render children()}
-	<Menu />
 </div>
+<Menu />
