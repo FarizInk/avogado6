@@ -10,7 +10,7 @@ export const pull = async (type) => {
 	let totalPages = 1;
 	let conf = { filter: `type = '${type}'`}
 	if (type === 'web') {
-		type.expand = 'info'
+		conf.expand = 'info'
 	}
 	for (let i = 1; i <= totalPages; i++) {
 		const payload = await pb
