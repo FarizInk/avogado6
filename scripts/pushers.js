@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { cliLoading, delay, getDataIG, pocketbase } from './utility.js';
+import { cliLoading, delay, pocketbase } from './utility.js';
 import fs from 'node:fs';
+import 'dotenv/config';
 
 export const push = async (type) => {
 	const pb = await pocketbase();
@@ -30,60 +31,58 @@ export const push = async (type) => {
 				description: null
 			}
 		};
-		let info = null;
 
+		let info = null;
+		let infoMetadata = {
+			type,
+			via: null,
+			medias: []
+		}
 		if (type === 'web') {
 			if (!item.identifier) continue;
 			payload.identifier = item.identifier;
 			info = item;
 			payload.date = item.date ? new Date(item.date).toISOString() : null;
-		} else if (type === 'twitter') {
-			if (!item.url) continue;
-			let dataJSON = {
-				url: item.url
-			};
-			try {
-				const { data: responseData } = await axios.get(
-					item.url.replace('/x.com', '/api.vxtwitter.com')
-				);
-				dataJSON = {
-					...responseData,
-					...dataJSON
-				};
+			infoMetadata.medias = [item.url]
+		} else {
+				try {
+				const { data: responseData } = await axios.post(`${process.env.H_API_URL}`, {
+					url: item.url,
+				}, {
+					headers: {
+						'Accept': 'application/json',
+						'Authorization': `Bearer ${process.env.H_API_TOKEN}`
+					}
+				});
+
+				info = responseData.data
+				infoMetadata.via = responseData?.via ?? null
+				infoMetadata.medias = responseData?.medias ?? []
+				let timestamp = null
+				if (type === 'instagram') {
+					timestamp = responseData?.data?.taken_at_timestamp ?? responseData?.data?.taken_at
+					if (timestamp) timestamp  = timestamp * 1000
+				} else if (type === 'twitter') {
+					timestamp = responseData?.data?.date
+				}
+				payload.date = timestamp ? new Date(timestamp) : null
 			} catch (error) {
 				console.error(error);
 				continue;
 			}
-			info = dataJSON;
-			payload.date = dataJSON.date ? new Date(dataJSON.date)?.toISOString() : null;
-		} else if (type === 'instagram') {
-			if (!item.url) continue;
-			let dataJSON = {
-				url: item.url
-			};
-			const responseData = await getDataIG(item.url);
-			if (responseData?.items && responseData?.items.length) {
-				const responseItem = responseData?.items[0] ?? null;
-				dataJSON = {
-					...responseItem,
-					...dataJSON
-				};
-			}
-			info = dataJSON;
-			payload.date = dataJSON.taken_at ? new Date(dataJSON.taken_at * 1000)?.toISOString() : null;
 		}
 
 		if (!payload.identifier || !payload.date) continue;
 
 		try {
-			payload.metadata.title = info?.title ?? info?.text ?? info?.caption?.text ?? null;
 			const pbPayload = await pb.collection('avogado').create(payload);
 			data[i].id = pbPayload.id;
 			fs.writeFileSync(dataPath, JSON.stringify(data));
 			if (info !== null) {
 				const infoPayload = await pb.collection('avogado_info').create({
 					data: info,
-					avogado: pbPayload.id
+					avogado: pbPayload.id,
+					metadata: infoMetadata
 				});
 
 				await pb.collection('avogado').update(pbPayload.id, {
