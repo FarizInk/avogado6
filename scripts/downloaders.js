@@ -1,4 +1,4 @@
-import { cliLoading, getUrls, pocketbase } from './utility.js';
+import { cliLoading, pocketbase } from './utility.js';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import { promisify } from 'util';
@@ -50,7 +50,7 @@ export const download = async (type) => {
 		const payload = await pb.collection('avogado').getList(i, 200, { filter, expand: 'info' });
 		for (let j = 0; j < payload.items.length; j++) {
 			const item = payload.items[j];
-			let urls = getUrls(type, item.expand?.info?.data);
+			let urls = item.expand?.info?.metadata?.medias ?? []
 			let fileIds = [];
 			for (let k = 0; k < urls.length; k++) {
 				const url = urls[k];
