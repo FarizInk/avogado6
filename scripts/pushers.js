@@ -45,7 +45,7 @@ export const push = async (type) => {
 			payload.date = item.date ? new Date(item.date).toISOString() : null;
 			infoMetadata.medias = [item.url]
 		} else {
-				try {
+			try {
 				const { data: responseData } = await axios.post(`${process.env.H_API_URL}`, {
 					url: item.url,
 				}, {
@@ -61,7 +61,7 @@ export const push = async (type) => {
 				let timestamp = null
 				if (type === 'instagram') {
 					timestamp = responseData?.data?.taken_at_timestamp ?? responseData?.data?.taken_at
-					if (timestamp) timestamp  = timestamp * 1000
+					if (timestamp) timestamp = timestamp * 1000
 				} else if (type === 'twitter') {
 					timestamp = responseData?.data?.date
 				}
@@ -93,7 +93,9 @@ export const push = async (type) => {
 			bar.update(countPush);
 			countPush++;
 		} catch (err) {
-			if (err?.response?.data?.identifier?.code !== 'validation_not_unique') {
+			if (err?.response?.data?.identifier?.code === 'validation_not_unique') {
+				countPush++;
+			} else {
 				console.error(err);
 			}
 		}
