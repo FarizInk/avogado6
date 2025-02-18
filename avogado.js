@@ -17,24 +17,32 @@ cmd
 	.version('1.0.0')
 	.action(async () => {
 		const types = ['web', 'twitter', 'instagram'];
+
+		for (let i = 0; i < types.length; i++) {
+			await pull(types[i]);
+			await delay(1.5);
+		}
+		console.info();
+
 		await scrapperWeb();
-		await delay(5);
+		await delay(3);
 		console.info('-------------------');
 		await scrapperTwitter();
-		await delay(5);
+		await delay(3);
 		console.info('-------------------');
 		await scrapperIG();
 
 		console.info();
-		types.forEach(async (type) => {
-			await delay(5);
-			await push(type);
-		});
+		for (let i = 0; i < types.length; i++) {
+			await delay(3);
+			await push(types[i]);
+		}
 
-		types.forEach(async (type) => {
-			await delay(5);
-			await download(type);
-		});
+		console.info();
+		for (let i = 0; i < types.length; i++) {
+			await delay(3);
+			await download(types[i]);
+		}
 	});
 
 cmd
